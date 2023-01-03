@@ -12,18 +12,18 @@
 %type <sval> object
 %type <sval> file
 %%
-end : file {System.out.println($1)}
+end : file {System.out.println($1);}
 
-file : file object {$$ = $1 + "\n" + $2}
-| object {$$ = $1}
+file : file object {$$ = $1 + "\n" + $2;}
+| object {$$ = $1;}
 ;
 
-object : OBJNAME properties {$$ = "[" + $1 + "]\n" + $2};
+object : OBJNAME properties {$$ = "[" + $1 + "]\n" + $2;};
 
-properties : properties property {$$ = $1 + $2}|
-property {$$ = $1};
+properties : properties property {$$ = $1 + $2;}|
+property {$$ = $1;};
 
-property: PROPNAME VALUE {$$ = $1 + "=" + $2 + "\n"}
+property: PROPNAME VALUE {$$ = $1 + "=" + $2 + "\n";}
 %%
 
 private Yylex lexer;
@@ -52,7 +52,7 @@ private Yylex lexer;
   }
 
 
-  static boolean interactive;
+  static boolean interactive; 
 
   public static void main(String args[]) throws IOException {
     Parser yyparser;

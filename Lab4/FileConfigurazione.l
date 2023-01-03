@@ -10,7 +10,7 @@
   }
 %}
 
-%state OBJNAME
+%state OBJREC
 %state PROPNAME
 %state VALUE
 
@@ -19,25 +19,40 @@ STARTOBJECT = "{"
 ENDOBJECT = "}"
 SEMICOLON = ";"
 ENDVALUE = \n | \r
-ENDPROCESSING = "$$"
 %%
+
 <YYINITIAL> {
-    "$$" {}
-    [^] {yybegin(OBJNAME);}
+  [\s]+ {}
+  [^:\{\n\r]+ {COLON} {
+    String string = yytext();
+    yyparser.yylval = new ParserVal(string.substring(0, string.length() - 1));
+    yybegin(OBJREC);
+    return Parser.OBJNAME;
+  }
 }
-<OBJNAME> {
-    .* {COLON} .* {STARTOBJECT} {yyparser.yylval = new ParserVal(yytext().substring(0, yylength() - 2));yybegin(PROPNAME);return Parser.OBJNAME; }
+
+<OBJREC> {
+  [\s]+ {}
+  {STARTOBJECT} {yybegin(PROPNAME);}
 }
 
 <PROPNAME> {
-    .* {COLON} {String s = yytext();
-                yyparser.yylval = new ParserVal(s.substring(0, s.length() - 1));
-                yybegin(VALUE);
-                return Parser.PROPNAME; }
+  [\s]+ {}
+  [^\s]+ [^\n\r\;\:]* {COLON} {
+    String string = yytext();
+    yyparser.yylval = new ParserVal(string.substring(0, string.length() - 1));
+    yybegin(VALUE);
+    return Parser.PROPNAME;
+  }
+  {ENDOBJECT}{SEMICOLON} {yybegin(YYINITIAL);}
 }
 
-<VALUE> {
-    .* {ENDVALUE} {yyparser.yylval = new ParserVal(yytext().substring(0, yylength() - 1));yybegin(PROPNAME);return Parser.VALUE; }
-    .* {ENDOBJECT} {SEMICOLON} {yyparser.yylval = new ParserVal(yytext().substring(0, yylength() - 2));yybegin(YYINITIAL);return Parser.VALUE; }
+<VALUE>{
+  [\s]+ {}
+  [^\s]+[^\n\r]* {ENDVALUE} {
+    String string = yytext();
+    yyparser.yylval = new ParserVal(string.substring(0, string.length() -1));
+    yybegin(PROPNAME);
+    return Parser.VALUE;
+  }
 }
-
